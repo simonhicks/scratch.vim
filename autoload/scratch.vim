@@ -21,6 +21,11 @@ function! s:bufopts()
   setlocal nohidden
 endfunction
 
+function! scratch#noop(lines)
+  setlocal nomodified
+  return 0 " no op
+endfunction
+
 function! scratch#invoke(fname, bnum)
   let lines = getbufline(a:bnum, 1, "$")
   let l:Func = function(a:fname)
@@ -36,4 +41,22 @@ function! scratch#open(bufname, writeFunction)
   execute "  au!"
   execute "  au BufWriteCmd <buffer=".l:bufnum."> call scratch#invoke('".a:writeFunction."', ".l:bufnum.")"
   execute "augroup END"
+endfunction
+
+function! scratch#command(...)
+  let bufname = '*** SCRATCH BUFFER ***'
+  if a:0
+    let bufname = a:1
+  endif
+  let funcname = 'scratch#noop'
+  if a:0 >= 3
+    let funcname = a:3
+  endif
+  if a:0 >= 4
+    echoerr "USAGE: Scratch [bufname [filetype [write-function]]]"
+  endif
+  call scratch#open(bufname, funcname)
+  if a:0 >= 2
+    execute "setlocal filetype=".a:2
+  endif
 endfunction
